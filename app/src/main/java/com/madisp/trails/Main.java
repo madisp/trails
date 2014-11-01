@@ -1,6 +1,7 @@
 package com.madisp.trails;
 
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -8,26 +9,29 @@ import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
+import android.widget.ImageButton;
 
 import com.madisp.trails.data.RecordRequest;
 import com.madisp.trails.data.ServiceState;
+import com.madisp.trails.recordings.RecordingsFragment;
 
 public class Main extends Activity implements CaptureService.Listener {
     private CaptureService service;
     private ServiceState state;
     private MediaProjectionManager projectionManager;
+    private ImageButton recordBtn;
 
     private ServiceConnection serviceConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             service = ((CaptureService.LocalBinder)binder).getService();
             service.addListener(Main.this);
-            reveal();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            hide();
+            service = null;
+            stateUpdated(null);
         }
     };
 
@@ -41,11 +45,19 @@ public class Main extends Activity implements CaptureService.Listener {
         projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         bindService(new Intent(this, CaptureService.class), serviceConn, BIND_AUTO_CREATE);
 
-        hide();
+        recordBtn = (ImageButton) findViewById(R.id.record);
+        if (savedInstanceState == null) {
+            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            ft.add(R.id.main, new RecordingsFragment()).commit();
+        }
         findViewById(R.id.record).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(projectionManager.createScreenCaptureIntent(), R.id.requestProjection);
+                if (state.isRecording()) {
+                    service.stop();
+                } else {
+                    startActivityForResult(projectionManager.createScreenCaptureIntent(), R.id.requestProjection);
+                }
             }
         });
     }
@@ -57,25 +69,6 @@ public class Main extends Activity implements CaptureService.Listener {
         unbindService(serviceConn);
     }
 
-    public void reveal() {
-        // service is connected, we're good to go
-        findViewById(R.id.content).setVisibility(View.VISIBLE);
-        findViewById(R.id.loading).setVisibility(View.GONE);
-        if (state.isRecording()) {
-            findViewById(R.id.record).setVisibility(View.GONE);
-            findViewById(R.id.inProgress).setVisibility(View.VISIBLE);
-        } else {
-            findViewById(R.id.record).setVisibility(View.VISIBLE);
-            findViewById(R.id.inProgress).setVisibility(View.GONE);
-        }
-    }
-
-    public void hide() {
-        // service has disconnected, clear the views
-        findViewById(R.id.content).setVisibility(View.GONE);
-        findViewById(R.id.loading).setVisibility(View.VISIBLE);
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -83,13 +76,20 @@ public class Main extends Activity implements CaptureService.Listener {
             return;
         }
         if (requestCode == R.id.requestProjection) {
-            service.record(new RecordRequest.Builder(resultCode, data).durationMs(10000).build());
+            service.record(new RecordRequest.Builder(resultCode, data).durationMs(-1).build());
         }
     }
 
     @Override
     public void stateUpdated(ServiceState state) {
         this.state = state;
-        reveal();
+        if (service == null || state == null) {
+            return;
+        }
+        if (state.isRecording()) {
+            recordBtn.setImageResource(R.drawable.ic_stop_white);
+        } else {
+            recordBtn.setImageResource(R.drawable.ic_videocam_white);
+        }
     }
 }

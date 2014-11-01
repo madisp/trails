@@ -3,4 +3,6 @@
     <string name="app_label">Trails</string>
     <string name="hullo">Hullo guvnor!</string>
     <string name="btn_record">Record</string>
+    <string name="btnShare">Share</string>
+    <string name="btnDelete">Delete</string>
 </resources>

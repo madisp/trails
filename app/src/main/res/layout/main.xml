@@ -1,28 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ProgressBar
-        android:id="@+id/loading"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_gravity="center" />
-
-    <LinearLayout
-        android:id="@+id/content"
+    <FrameLayout
+        android:id="@+id/main"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-        <Button
-            android:id="@+id/record"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_record" />
-        <TextView android:id="@+id/inProgress"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:text="Recording is in progress..." />
-    </LinearLayout>
-</FrameLayout>
+        android:layout_height="match_parent">
+    </FrameLayout>
+
+    <ImageButton
+        android:id="@+id/record"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:elevation="4dp"
+        android:background="@drawable/action_button"
+        android:src="@drawable/ic_videocam_white"/>
+</RelativeLayout>

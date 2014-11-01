@@ -1,7 +1,6 @@
 package com.madisp.trails;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.hardware.display.VirtualDisplay;
@@ -24,8 +23,12 @@ import com.madisp.trails.data.ServiceState;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 public class CaptureService extends Service {
     private final Set<Listener> listeners = new HashSet<>();
@@ -35,6 +38,8 @@ public class CaptureService extends Service {
     private MediaProjectionManager projectionManager;
     private MediaProjection projection;
     private boolean running = false;
+
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd.HH_mm_ss", Locale.US);
 
     public CaptureService() {
         uiHandler = new Handler(Looper.getMainLooper());
@@ -91,18 +96,15 @@ public class CaptureService extends Service {
             format.setInteger(MediaFormat.KEY_BIT_RATE, 8000000);
             format.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
             format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-            format.setFloat(MediaFormat.KEY_FRAME_RATE, 30.0f);
-            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 15);
+            format.setFloat(MediaFormat.KEY_FRAME_RATE, 60.0f);
+            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 5);
 
             final MediaCodec avc = MediaCodec.createEncoderByType("video/avc");
             avc.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             final Surface surface = avc.createInputSurface();
             avc.start();
 
-            File out = new File(getExternalFilesDir("media"), "asdf.mp4");
-            if (out.exists()) {
-                out.delete();
-            }
+            final File out = new File(getExternalCacheDir(), UUID.randomUUID().toString() + ".mp4");
             final MediaMuxer muxer = new MediaMuxer(out.getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
             running = true;
@@ -140,6 +142,11 @@ public class CaptureService extends Service {
                     surface.release();
                     muxer.stop();
                     muxer.release();
+
+                    // move output to media folder
+                    File stored = new File(getExternalFilesDir("recorded"), "recording." + dateFormat.format(new Date()) + ".mp4");
+                    out.renameTo(stored);
+                    // notify loader ?
                 }
             }).start();
 
