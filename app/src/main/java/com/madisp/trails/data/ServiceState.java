@@ -1,33 +1,32 @@
 package com.madisp.trails.data;
 
 public final class ServiceState {
-    private boolean recording;
+    private RecordRequest recordRequest;
 
     private ServiceState() {
     }
 
     public boolean isRecording() {
-        return recording;
+        return recordRequest != null;
     }
 
     public static class Builder {
-        private boolean recording = false;
+        private RecordRequest recordRequest;
 
         public Builder() {
         }
 
         public Builder(ServiceState state) {
-            this.recording = state.recording;
         }
 
-        public Builder recording(boolean recording) {
-            this.recording = recording;
+        public Builder recording(RecordRequest request) {
+            this.recordRequest = request;
             return this;
         }
 
         public ServiceState build() {
             ServiceState state = new ServiceState();
-            state.recording = recording;
+            state.recordRequest = recordRequest;
             return state;
         }
     }

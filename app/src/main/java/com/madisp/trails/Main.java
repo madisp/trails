@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -46,8 +45,7 @@ public class Main extends Activity implements CaptureService.Listener {
         findViewById(R.id.record).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                startActivityForResult(projectionManager.createScreenCaptureIntent(), R.id.requestProjection);
-                service.record(new RecordRequest.Builder().build());
+                startActivityForResult(projectionManager.createScreenCaptureIntent(), R.id.requestProjection);
             }
         });
     }
@@ -81,9 +79,11 @@ public class Main extends Activity implements CaptureService.Listener {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_CANCELED) {
+            return;
+        }
         if (requestCode == R.id.requestProjection) {
-            MediaProjection projection = projectionManager.getMediaProjection(resultCode, data);
-            service.record(new RecordRequest.Builder().build());
+            service.record(new RecordRequest.Builder(resultCode, data).durationMs(10000).build());
         }
     }
 
