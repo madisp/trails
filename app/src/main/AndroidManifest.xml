@@ -2,6 +2,13 @@
     package="com.madisp.trails">
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <application android:allowBackup="true" />
+    <application android:allowBackup="true">
+        <activity android:name=".Main">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
 </manifest>
 
