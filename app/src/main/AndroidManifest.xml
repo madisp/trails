@@ -1,14 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.madisp.trails">
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <application android:allowBackup="true">
+    <application
+        android:label="@string/app_label"
+        android:theme="@android:style/Theme.Material"
+        android:allowBackup="true">
+
         <activity android:name=".Main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
-</manifest>
 
+        <service
+            android:name=".CaptureService"
+            android:exported="false" />
+
+    </application>
+
+</manifest>
