@@ -56,7 +56,8 @@ public class Main extends Activity implements CaptureService.Listener {
                 if (state.isRecording()) {
                     service.stop();
                 } else {
-                    startActivityForResult(projectionManager.createScreenCaptureIntent(), R.id.requestProjection);
+                    startActivityForResult(projectionManager.createScreenCaptureIntent(),
+                            R.id.requestProjection);
                 }
             }
         });
@@ -65,7 +66,9 @@ public class Main extends Activity implements CaptureService.Listener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        service.removeListener(this);
+        if (service != null) {
+            service.removeListener(this);
+        }
         unbindService(serviceConn);
     }
 

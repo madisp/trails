@@ -3,7 +3,6 @@ package com.madisp.trails.recordings;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.util.Log;
 
 import com.squareup.picasso.Downloader;
 
@@ -17,8 +16,10 @@ public class ThumbDownloader implements Downloader {
     public Response load(Uri uri, boolean localCacheOnly) throws IOException {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         try {
-            retriever.setDataSource(new File(new URI(uri.toString().replace("http://", "file:///"))).getAbsolutePath());
-            Bitmap bitmap = retriever.getFrameAtTime(8 * 1000 * 1000); // 15 secs in
+            // need to unescape the scheme
+            URI unescaped = new URI(uri.toString().replace("http://", "file:///"));
+            retriever.setDataSource(new File(unescaped).getAbsolutePath());
+            Bitmap bitmap = retriever.getFrameAtTime(8 * 1000 * 1000); // 8 seconds into the video
             return new Response(bitmap, false, -1);
         } catch (URISyntaxException e) {
             throw new IOException(e);

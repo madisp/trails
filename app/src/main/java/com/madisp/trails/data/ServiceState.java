@@ -1,6 +1,9 @@
 package com.madisp.trails.data;
 
-public final class ServiceState {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public final class ServiceState implements Parcelable {
     private RecordRequest recordRequest;
 
     private ServiceState() {
@@ -30,4 +33,30 @@ public final class ServiceState {
             return state;
         }
     }
+
+    @Override
+    public int describeContents() {
+        return recordRequest.describeContents();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(recordRequest, flags);
+    }
+
+    public static final Parcelable.Creator<ServiceState> CREATOR =
+            new Parcelable.Creator<ServiceState>() {
+
+        @Override
+        public ServiceState createFromParcel(Parcel source) {
+            ServiceState state = new ServiceState();
+            state.recordRequest = source.readParcelable(RecordRequest.class.getClassLoader());
+            return state;
+        }
+
+        @Override
+        public ServiceState[] newArray(int size) {
+            return new ServiceState[0];
+        }
+    };
 }

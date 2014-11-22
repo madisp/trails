@@ -5,9 +5,11 @@ import android.app.Service;
 import android.content.Intent;
 import android.hardware.display.VirtualDisplay;
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
+import android.media.MediaCodecInfo.CodecCapabilities;
+import android.media.MediaCodecInfo.EncoderCapabilities;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.media.MediaMuxer.OutputFormat;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Binder;
@@ -30,6 +32,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import static android.media.MediaFormat.createVideoFormat;
+
 public class CaptureService extends Service {
     private final Set<Listener> listeners = new HashSet<>();
     private ServiceState state = new ServiceState.Builder().build();
@@ -49,7 +53,7 @@ public class CaptureService extends Service {
     public void onCreate() {
         super.onCreate();
         //noinspection ResourceType
-        this.projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+        this.projectionManager = (MediaProjectionManager)getSystemService(MEDIA_PROJECTION_SERVICE);
     }
 
     @Override
@@ -92,10 +96,10 @@ public class CaptureService extends Service {
         int flags = 0;
         try {
 
-            MediaFormat format = MediaFormat.createVideoFormat("video/avc", width, height);
+            MediaFormat format = createVideoFormat("video/avc", width, height);
             format.setInteger(MediaFormat.KEY_BIT_RATE, 8000000);
-            format.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
-            format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+            format.setInteger(MediaFormat.KEY_BITRATE_MODE, EncoderCapabilities.BITRATE_MODE_CBR);
+            format.setInteger(MediaFormat.KEY_COLOR_FORMAT, CodecCapabilities.COLOR_FormatSurface);
             format.setFloat(MediaFormat.KEY_FRAME_RATE, 60.0f);
             format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 5);
 
@@ -105,7 +109,8 @@ public class CaptureService extends Service {
             avc.start();
 
             final File out = new File(getExternalCacheDir(), UUID.randomUUID().toString() + ".mp4");
-            final MediaMuxer muxer = new MediaMuxer(out.getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            final MediaMuxer muxer = new MediaMuxer(out.getAbsolutePath(),
+                    OutputFormat.MUXER_OUTPUT_MPEG_4);
 
             running = true;
 
@@ -144,13 +149,26 @@ public class CaptureService extends Service {
                     muxer.release();
 
                     // move output to media folder
-                    File stored = new File(getExternalFilesDir("recorded"), "recording." + dateFormat.format(new Date()) + ".mp4");
+                    String filename = "recording." + dateFormat.format(new Date()) + ".mp4";
+                    File stored = new File(getExternalFilesDir("recorded"), filename);
                     out.renameTo(stored);
-                    // notify loader ?
+                    uiHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            // notify state change
+                            state = new ServiceState.Builder(state).recording(null).build();
+                            notifyStateChange();
+                            // dismiss notification
+                            stopForeground(true);
+                            // stop self
+                            stopSelf();
+                        }
+                    });
                 }
             }).start();
 
-            projection.createVirtualDisplay("trails", width, height, metrics.densityDpi, flags, surface, new VirtualDisplay.Callback() {}, uiHandler);
+            projection.createVirtualDisplay("trails", width, height, metrics.densityDpi, flags,
+                    surface, new VirtualDisplay.Callback() {}, uiHandler);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -159,13 +177,6 @@ public class CaptureService extends Service {
     public void stop() {
         // stop recording
         running = false;
-        // notify state change
-        state = new ServiceState.Builder(state).recording(null).build();
-        notifyStateChange();
-        // dismiss notification
-        stopForeground(true);
-        // stop self
-        stopSelf();
     }
 
     public void addListener(Listener listener) {

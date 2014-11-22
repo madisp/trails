@@ -34,7 +34,8 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.Vi
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        LayoutInflater inflater = (LayoutInflater) viewGroup.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) viewGroup.getContext()
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = inflater.inflate(R.layout.recording, viewGroup, false);
         return new ViewHolder(v, callback);
     }
@@ -79,7 +80,8 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.Vi
         public void bind(final Recording recording) {
             this.recording = recording;
             text.setText(recording.getName());
-            App.picasso.load(recording.getPicassouri()).resize(imgWidth, imgHeight).centerCrop().into(image);
+            App.picasso.load(recording.getPicassouri()).resize(imgWidth, imgHeight)
+                    .centerCrop().into(image);
             share.setOnClickListener(this);
             image.setOnClickListener(this);
             delete.setOnClickListener(this);
